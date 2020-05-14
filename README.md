@@ -1,4 +1,5 @@
 # Time Dictionary
+![Unittests](https://github.com/Matshec/time_dict/workflows/Unittests/badge.svg)
 
 ### How to install
 `> pip install time_dict`
