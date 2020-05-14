@@ -1,4 +1,4 @@
-#Time Dictionary
+# Time Dictionary
 
 ### How to install
 `> pip install time_dict`
@@ -13,7 +13,7 @@ calling `destroy()` method or deleting it as `del d` or the interpreter will han
 
 ### Example Usage
 ```python
-from time_dict import TimeDict
+from time_dictionary.time_dict import TimeDict
 cache = TimeDict(action_time=2, poll_time=0.5)
 key = '1'
 cache[key] = 1
@@ -23,17 +23,22 @@ del cache
 ---
 ### Main parameters are:
    
-    action_time - which specifies age in second at which objects should be deleted - time when actions should
-                  be performed and object will be deleted from structure
+    action_time - which specifies age in second at which objects should be deleted - 
+                time when actions should be performed and object will be deleted from structure
+                
     poll_time - frequency in seconds of polling the objects for age timeout,
-                experimentally should be around 1/4 of the action_time or less. Please not that too frequent polling
+                experimentally should be around 1/4 of the action_time or less. 
+                Please not that too frequent polling
                 may negatively affect you application performance
-    action - function that is called on object age timeout. Signature is 'fn(key:Any, value:Any) -> None'
+                
+    action  -   function that is called on object age timeout. 
+                Signature is 'fn(key:Any, value:Any) -> None'
+                 
     no_delete - do not delete objects when actions was called
        
        
 Class **PARTIALLY**  implements dictionary interface, implementations allows for:
-```
+```python
 d = TimeDict(action_time=2, poll_time=0.5)
 insertion:
     d[key] = value
