@@ -1,6 +1,6 @@
 import unittest
 import time
-from time_dictionary.time_dict import TimeDict
+from time_dict.time_dict import TimeDict
 from unittest.mock import Mock
 
 

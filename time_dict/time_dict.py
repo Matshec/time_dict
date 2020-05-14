@@ -4,7 +4,7 @@ from threading import Lock
 from datetime import timedelta, datetime
 from collections import namedtuple
 from typing import Callable, Any
-from time_dictionary.updater import Updater
+from time_dict.updater import Updater
 
 logger = logging.getLogger()
 TimedKey = namedtuple('TimedKey', ['time', 'key'])

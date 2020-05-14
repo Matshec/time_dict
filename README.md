@@ -13,7 +13,7 @@ calling `destroy()` method or deleting it as `del d` or the interpreter will han
 
 ### Example Usage
 ```python
-from time_dictionary.time_dict import TimeDict
+from time_dict import TimeDict
 cache = TimeDict(action_time=2, poll_time=0.5)
 key = '1'
 cache[key] = 1
@@ -58,7 +58,7 @@ except for `del` which always is O(n)
 
  Rest of the dictionary interface is not implemented by design.
  
-### methods are:
+### Methods are:
 `clear() → None`
 
 Safely clear all data in the structure :raises Exception
