@@ -1,8 +1,11 @@
 # Time Dictionary
 ![Unittests](https://github.com/Matshec/time_dict/workflows/Unittests/badge.svg)
 
+Now objects age too! - 
+Automatically manage your objects based on age
+
 ### How to install
-`> pip install time_dict`
+`> pip install timedict`
 
 ### Overview
 This module implements self-updating structure that is able to handle updating and removing object based on age.
