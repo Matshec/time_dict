@@ -2,12 +2,11 @@ import logging
 import os
 from threading import Lock
 from datetime import timedelta, datetime
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from typing import Callable, Any
-from time_dict.updater import Updater
+from time_dict.updater import Updater, TimedValue
 
 logger = logging.getLogger()
-TimedKey = namedtuple('TimedKey', ['time', 'key'])
 
 
 class TimeDict:
@@ -67,11 +66,10 @@ class TimeDict:
                 - `def action(key, value) ->None`
         :param no_delete: do not delete object after action() fired, default is False
         """
-        self.data = {}
+        self.data = OrderedDict()
         self.lock = Lock()
-        self.time_list = []
         action_time = timedelta(seconds=action_time)
-        self.updater = Updater(self.data, self.time_list, self.lock, poll_time, action_time, action, no_delete)
+        self.updater = Updater(self.data, self.lock, poll_time, action_time, action, no_delete)
         self.updater.start()
 
     def _check_exception(self):
@@ -89,7 +87,6 @@ class TimeDict:
         """
         self._check_exception()
         with self.lock:
-            self.time_list.clear()
             self.data.clear()
 
     def flush(self) -> None:
@@ -117,11 +114,14 @@ class TimeDict:
         :raises Exception if updated thread died
         """
         self._check_exception()
+        timed_value = TimedValue(datetime.now(), value)
         with self.lock:
-            if key not in self.data:
-                tv = TimedKey(datetime.now(), key)
-                self.time_list.append(tv)
-            self.data[key] = value
+            if key in self.data:
+                dict_value = self.data[key]
+                dict_value.value = value
+                self.data[key] = dict_value
+            else:
+                self.data[key] = timed_value
 
     def __len__(self) -> int:
         """
@@ -140,7 +140,7 @@ class TimeDict:
         """
         self._check_exception()
         with self.lock:
-            return self.data[key]
+            return self.data[key].value
 
     def __contains__(self, key):
         """Check if item is in the structure"""
@@ -150,16 +150,13 @@ class TimeDict:
 
     def __delitem__(self, key):
         """
-        Delete item from structure with `del`
-        This is slow operation - O(n)"""
+        Delete item from structure with `del`"""
         self._check_exception()
         with self.lock:
-            value_index = [i for i, v in enumerate(self.time_list) if v.key == key].pop()
-            del self.time_list[value_index]
             del self.data[key]
 
     def __repr__(self):
-        return self.data.__repr__() + os.linesep + self.time_list.__repr__()
+        return self.data.__repr__()
 
     def __del__(self):
         """
