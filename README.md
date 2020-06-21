@@ -56,11 +56,9 @@ testing for membership:
 checking length:
     len(d)
 ```
-All of the above method have optimistic time complexity of O(1) and pessimistic of O(n) due to thread locking
-except for `del` which always is O(n)
+All of the above method have optimistic time complexity of O(1)
 
-
- Rest of the dictionary interface is not implemented by design.
+Rest of the dictionary interface is not implemented by design.
  
 ### Methods are:
 `clear() → None`

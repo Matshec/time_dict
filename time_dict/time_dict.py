@@ -15,7 +15,7 @@ class TimeDict:
     Objects added to this structure are assigned timestamp at insertion, then when age of object is exceeded optional
     action function is called and object is removed from the structure.
 
-    NOTE: why you are using this structure you must explicitly delete it due to thread locking either by
+    NOTE: when you are using this structure you must explicitly delete it due to thread locking either by
     calling destroy() method or deleting it as del d  or the interpreter will hang at exit
 
     EXAMPLE USAGE:
