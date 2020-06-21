@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="timedict",
-    version="0.0.1",
+    version="0.0.3",
     author="Matshec",
     author_email="mmasakra@gmail.com",
     description="A self updating dictionary like structure",

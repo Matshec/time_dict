@@ -2,9 +2,11 @@ import logging
 import time
 from datetime import timedelta, datetime
 from threading import Thread, Lock, Event
-from typing import Dict, List
+from typing import Any
+from collections import namedtuple, OrderedDict
 
 logger = logging.getLogger()
+TimedValue = namedtuple('TimedValue', ['time', 'value'])
 
 
 class Updater(Thread):
@@ -12,11 +14,10 @@ class Updater(Thread):
     This is a thread class used to update time_dict internal structure
     NOTE: store object should be treated as the highest source of truth
     """
-    def __init__(self, store: Dict, time_store: List,
+    def __init__(self, store: OrderedDict,
                  lock: Lock, poll_time: float, action_time: timedelta, action, no_delete):
         super().__init__()
         self.store = store
-        self.time_store = time_store
         self.lock = lock
         self.poll_time = poll_time
         self.action_time = action_time
@@ -24,7 +25,6 @@ class Updater(Thread):
         self.no_delete = no_delete
 
         self.active = Event()
-        self.removed_elems = 0
         self.exception = None
 
     def start(self) -> None:
@@ -35,8 +35,8 @@ class Updater(Thread):
         with self.lock:
             no_del_store = self.no_delete
             self.no_delete = True
-            for tv in self.time_store:
-                self._handle_timed(tv)
+            for key, value in self.store.items():
+                self._handle_timed(key, value)
             self.no_delete = no_del_store
 
     def join(self, *args, **kwargs):
@@ -44,41 +44,39 @@ class Updater(Thread):
         self.active.clear()
         super().join(*args, **kwargs)
 
-    def _handle_timed(self, obj):
-        value = self.store[obj.key]
-        if self.action:
-            self.action(obj.key, value)
-        if not self.no_delete:
-            self.removed_elems += 1
-            del self.store[obj.key]
-
-    def _timestore_remove_old(self):
-        # make sure last object does not stay
-        # varying indexes - store as higher source of truth
-        if self.removed_elems > 0:
-            self.time_store[:] = self.time_store[self.removed_elems:]
-            self.removed_elems = 0
-        assert len(self.store) == len(self.time_store), "mismanaged object in store, len varies"
-
     def run(self):
         try:
             logger.info('updater thread started')
             while self.active.is_set():
                 time.sleep(self.poll_time)
-                now = datetime.now()
-                # TODO better optimize locking
-                self.lock.acquire()
-                for i, tv in enumerate(self.time_store):
-                    if now - tv.time >= self.action_time:
-                        self._handle_timed(tv)
-                    else:
-                        # list should be sorted descending with age of object ( assured by insertion )
-                        # so if first or n-th object id not old enough all the following also won't be
-                        break
-                self._timestore_remove_old()
-                self.lock.release()
+                with self.lock:
+                    self.check_for_timed_and_process()
         except Exception as e:
             self.exception = e
             if self.lock.locked():
                 self.lock.release()
 
+    def check_for_timed_and_process(self):
+        now = datetime.now()
+        while self.store:
+            key, value = self.store.popitem(last=False)
+            if self._check_object_timed(value, now):
+                self._handle_timed(key, value)
+            else:
+                # put it back at the end
+                self._reinsert(key, value)
+                return
+
+    def _check_object_timed(self, object: TimedValue, now: datetime):
+        return now - object.time >= self.action_time
+
+    def _handle_timed(self, key: Any, value: TimedValue):
+        if self.action:
+            self.action(key, value.value)
+        if self.no_delete:
+            self._reinsert(key, value)
+
+    def _reinsert(self, key: Any, value: TimedValue):
+        if key not in self.store:
+            self.store[key] = value
+            self.store.move_to_end(key)
