@@ -2,8 +2,8 @@ import logging
 import time
 from datetime import timedelta, datetime
 from threading import Thread, Lock, Event
-from typing import List, OrderedDict, Any
-from collections import namedtuple
+from typing import Any
+from collections import namedtuple, OrderedDict
 
 logger = logging.getLogger()
 TimedValue = namedtuple('TimedValue', ['time', 'value'])
